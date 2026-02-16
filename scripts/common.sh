@@ -293,18 +293,19 @@ get_public_ip() {
 	local ip
 	if [[ -n "${AUTOSET_HOSTNAME_SERVICES}" ]]; then
 		services=("${AUTOSET_HOSTNAME_SERVICES}")
-		notice "Using user defined ${emphasis}AUTOSET_HOSTNAME_SERVICES${reset}=${emphasis}${AUTOSET_HOSTNAME_SERVICES}${reset} for IP detection"
+		notice "Using user defined ${emphasis}AUTOSET_HOSTNAME_SERVICES${reset}=${emphasis}${AUTOSET_HOSTNAME_SERVICES}${reset} for IP detection" >&2
 	else
-		debug "Public IP detection will use ${emphasis}${services}${reset} to detect the IP."
+		debug "Public IP detection will use ${emphasis}${services[0]}${reset} ... to detect the IP." >&2
 	fi
 
 	for service in "${services[@]}"; do
-		if ip="$(curl --fail-early --retry-max-time 30 --retry 10 --connect-timeout 5 --max-time 10 -s)"; then
+		if ip="$(curl --fail-early --retry-max-time 30 --retry 10 --connect-timeout 5 --max-time 10 -s "$service")"; then
 			# Some services, such as ifconfig.co will return a line feed at the end of the response.
 			ip="$(printf "%s" "${ip}" | trim)"
 			if [[ -n "${ip}" ]]; then
-				info "Detected public IP address as ${emphasis}${services}${ip}${reset}."
-				break
+				info "Detected public IP address as ${emphasis}${ip}${reset} from ${emphasis}${service}${reset}." >&2
+				echo "$ip"
+				return 0
 			fi
 		fi
 	done
