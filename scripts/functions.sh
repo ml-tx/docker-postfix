@@ -347,12 +347,15 @@ postfix_set_hostname() {
 
 	if [[ -z "$POSTFIX_myhostname" ]]; then
 		if [[ "${AUTOSET_HOSTNAME}" == "1" ]]; then
-			ip=$(get_public_ip)
-			hostname=$(dig +short -x $ip)
-			# Remove the trailing dot
-			hostname="${hostname%.}"
-			notice "Automatically setting Postfix hostname to ${emphasis}${hostname}${reset} based on your public IP address ${emphasis}${ip}${reset}..."
-			POSTFIX_myhostname="${hostname}"
+			get_public_ip
+			ip="${DETECTED_PUBLIC_IP}"
+			if [[ -n "${ip}" ]]; then
+				hostname=$(dig +short -x $ip)
+				# Remove the trailing dot
+				hostname="${hostname%.}"
+				notice "Automatically setting Postfix hostname to ${emphasis}${hostname}${reset} based on your public IP address ${emphasis}${ip}${reset}..."
+				POSTFIX_myhostname="${hostname}"
+			fi
 		else
 			POSTFIX_myhostname="${HOSTNAME}"
 		fi

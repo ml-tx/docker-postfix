@@ -291,11 +291,13 @@ convert_plugin_names_to_filter_names() {
 get_public_ip() {
 	local services=(https://ipinfo.io/ip https://ifconfig.me/ip https://icanhazip.com https://ipecho.net/ip https://ifconfig.co https://myexternalip.com/raw)
 	local ip
+	DETECTED_PUBLIC_IP=""
+
 	if [[ -n "${AUTOSET_HOSTNAME_SERVICES}" ]]; then
 		services=("${AUTOSET_HOSTNAME_SERVICES}")
-		notice "Using user defined ${emphasis}AUTOSET_HOSTNAME_SERVICES${reset}=${emphasis}${AUTOSET_HOSTNAME_SERVICES}${reset} for IP detection" >&2
+		notice "Using user defined ${emphasis}AUTOSET_HOSTNAME_SERVICES${reset}=${emphasis}${AUTOSET_HOSTNAME_SERVICES[*]}${reset} for IP detection"
 	else
-		debug "Public IP detection will use ${emphasis}${services[0]}${reset} ... to detect the IP." >&2
+		debug "Public IP detection will use ${emphasis}${services[*]}${reset} to detect the IP."
 	fi
 
 	for service in "${services[@]}"; do
@@ -303,8 +305,8 @@ get_public_ip() {
 			# Some services, such as ifconfig.co will return a line feed at the end of the response.
 			ip="$(printf "%s" "${ip}" | trim)"
 			if [[ -n "${ip}" ]]; then
-				info "Detected public IP address as ${emphasis}${ip}${reset} from ${emphasis}${service}${reset}." >&2
-				echo "$ip"
+				info "Detected public IP address as ${emphasis}${ip}${reset} from ${emphasis}${service}${reset}."
+				DETECTED_PUBLIC_IP="${ip}"
 				return 0
 			fi
 		fi
